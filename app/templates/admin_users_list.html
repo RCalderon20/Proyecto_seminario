@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="users-admin-section py-4 py-md-5">
+  <div class="container">
+
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-3">
+      <h1 class="fw-bold text-primary mb-2 mb-md-0">👤 Gestión de usuarios</h1>
+
+      <div class="d-flex gap-2">
+        <a class="btn btn-success btn-sm" href="{{ url_for('admin_users.new_user') }}">
+          + Nuevo usuario
+        </a>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <form class="row g-2 mb-3" method="get">
+      <div class="col-sm-8 col-lg-6">
+        <div class="input-group input-group-sm">
+          <span class="input-group-text">🔎</span>
+          <input type="text" class="form-control" name="q" value="{{ q or '' }}" placeholder="Buscar por nombre o correo">
+          <button class="btn btn-outline-primary">Buscar</button>
+        </div>
+      </div>
+    </form>
+
+    <!-- Table -->
+    <div class="table-responsive shadow-sm rounded-3 bg-white">
+      <table class="table table-hover align-middle mb-0 users-table">
+        <thead class="bg-light">
+          <tr class="text-muted">
+            <th style="width: 80px;">ID</th>
+            <th>Usuario</th>
+            <th>Roles</th>
+            <th class="text-center" style="width: 130px;">Estado</th>
+            <th style="width: 170px;">Creado</th>
+            <th class="text-end" style="width: 210px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in rows %}
+          <tr class="user-row {% if not u.IsActive %}table-secondary{% endif %}">
+            <td class="fw-semibold">{{ u.UserId }}</td>
+
+            <td>
+              <div class="d-flex align-items-center">
+                <!-- Avatar con iniciales -->
+                {% set initials = (u.FirstName[:1] ~ (u.LastName[:1] if u.LastName else ''))|upper %}
+                <div class="avatar-circle me-2">{{ initials or 'U' }}</div>
+                <div class="lh-sm">
+                  <div class="fw-semibold text-truncate">{{ u.FirstName }} {{ u.LastName }}</div>
+                  <div class="small text-muted text-truncate" title="{{ u.Email }}">{{ u.Email }}</div>
+                </div>
+              </div>
+            </td>
+
+            <td>
+  {% if u.Roles %}
+    {% for r in u.Roles.split(', ') %}
+      <span class="badge role-badge me-1 mb-1" style="color: #000; background-color: #e9ecef; border: 1px solid #dee2e6;">
+        {{ r }}
+      </span>
+    {% endfor %}
+  {% else %}
+    <span class="text-muted small">—</span>
+  {% endif %}
+</td>
+
+
+            <td class="text-center">
+              {% if u.IsActive %}
+                <span class="status-chip active">Activo</span>
+              {% else %}
+                <span class="status-chip inactive">Inactivo</span>
+              {% endif %}
+            </td>
+
+            <td class="small text-muted">{{ u.CreatedAt }}</td>
+
+            <td class="text-end">
+              <a class="btn btn-sm btn-primary me-1" href="{{ url_for('admin_users.edit_user', user_id=u.UserId) }}">
+                Editar
+              </a>
+
+              <!-- Toggle activo/inactivo -->
+              <form method="post" action="{{ url_for('admin_users.toggle_active', user_id=u.UserId) }}" class="d-inline">
+                <input type="hidden" name="active" value="{{ 0 if u.IsActive else 1 }}">
+                <button class="btn btn-sm {{ 'btn-outline-secondary' if u.IsActive else 'btn-outline-success' }} me-1">
+                  {{ 'Desactivar' if u.IsActive else 'Activar' }}
+                </button>
+              </form>
+
+              <!-- Eliminar definitivo -->
+              <form method="post"
+                    action="{{ url_for('admin_users.delete_user', user_id=u.UserId) }}"
+                    class="d-inline"
+                    onsubmit="return confirm('¡ATENCIÓN! Esto eliminará al usuario DEFINITIVAMENTE. Si tiene pedidos, fallará. ¿Continuar?');">
+                <button class="btn btn-sm btn-outline-danger">
+                  Eliminar
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="6" class="p-0">
+              <div class="p-5 text-center text-muted">
+                <div class="display-6 mb-2">🗂️</div>
+                <div class="lead mb-3">Sin resultados.</div>
+                <a class="btn btn-outline-primary btn-sm" href="{{ url_for('admin_users.list_users') }}">Limpiar filtros</a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}

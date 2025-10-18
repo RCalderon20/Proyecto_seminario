@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="notifications-section py-5">
+  <div class="container">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1 class="fw-bold text-primary mb-0">🔔 Notificaciones</h1>
+      {% if notifications and notifications|length %}
+        <span class="text-muted small">
+          {{ notifications|length }} notificación{{ notifications|length > 1 and 'es' or '' }}
+        </span>
+      {% endif %}
+    </div>
+
+    {% if notifications and notifications|length %}
+      <div class="list-group shadow-sm rounded-4 overflow-hidden">
+        {% for n in notifications %}
+          <div class="list-group-item list-group-item-action py-3 px-4 notification-item {% if not n.IsRead %}unread{% endif %}">
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="me-3 flex-grow-1">
+                <div class="d-flex align-items-center mb-1">
+                  {% if n.NotificationTypeId == 1 %}
+                    <span class="notification-icon bg-info-subtle text-info me-2">📦</span>
+                  {% elif n.NotificationTypeId == 2 %}
+                    <span class="notification-icon bg-success-subtle text-success me-2">✅</span>
+                  {% else %}
+                    <span class="notification-icon bg-secondary-subtle text-secondary me-2">🔔</span>
+                  {% endif %}
+                  <div class="fw-semibold">{{ n.Subject or 'Notificación' }}</div>
+                </div>
+                <div class="text-muted small mb-1">{{ n.MessageBody }}</div>
+                <small class="text-muted">
+                  {{ n.CreatedAt }}
+                </small>
+
+                {% if n.RelatedEntity == 'Order' and n.RelatedId %}
+                  <div class="mt-2 small text-muted">
+                    Si quieres ver tu pedido, ve a tu 
+                    <a href="{{ url_for('orders.history') }}" class="fw-semibold text-primary text-decoration-none">
+                      historial de pedidos
+                    </a>.
+                  </div>
+                {% endif %}
+              </div>
+
+              <div class="text-nowrap">
+                {% if not n.IsRead %}
+                  <form method="post" action="{{ url_for('notifications.mark_read', notification_id=n.NotificationId) }}">
+                    <button class="btn btn-sm btn-outline-primary">Marcar como leída</button>
+                  </form>
+                {% else %}
+                  <span class="badge bg-success px-3 py-2">Leída</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+          <div class="display-6 mb-3">🕊️</div>
+          <p class="lead mb-3">No tienes notificaciones por el momento.</p>
+          <a href="{{ url_for('catalog.home') }}" class="btn btn-primary">Ir al catálogo</a>
+        </div>
+      </div>
+    {% endif %}
+
+  </div>
+</section>
+
+{% endblock %}

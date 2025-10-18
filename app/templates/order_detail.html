@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h1 class="mb-1">Pedido {{ order.OrderNumber or ('#' ~ order.OrderId) }}</h1>
+      <div class="text-muted">
+        Fecha: {{ order.CreatedAt }} · Estado: {{ order.Status or '-' }}
+      </div>
+    </div>
+    <a class="btn btn-outline-secondary" href="{{ url_for('orders.my_orders') }}">Volver</a>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-lg-8">
+      <div class="table-responsive">
+        <table class="table table-striped align-middle">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>SKU</th>
+              <th class="text-center">Cantidad</th>
+              <th class="text-end">Precio</th>
+              <th class="text-end">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for it in items %}
+            <tr>
+              <td>{{ it.Name }}</td>
+              <td>{{ it.SKU }}</td>
+              <td class="text-center">{{ it.Quantity }}</td>
+              <td class="text-end">Q {{ "%.2f"|format(it.UnitPrice) }}</td>
+              <td class="text-end">Q {{ "%.2f"|format(it.LineTotal) }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <span>Subtotal</span>
+            <strong>Q {{ "%.2f"|format(order.Subtotal) }}</strong>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span>Impuestos</span>
+            <strong>Q {{ "%.2f"|format(order.TaxAmount) }}</strong>
+          </div>
+          <hr>
+          <div class="d-flex justify-content-between">
+            <span>Total</span>
+            <strong class="fs-5">Q {{ "%.2f"|format(order.Total) }}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="cart-section py-5">
+  <div class="container">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1 class="fw-bold text-primary mb-0">🛒 Tu carrito</h1>
+      {% if items and items|length > 0 %}
+        <form method="post" action="{{ url_for('cart.clear') }}" class="d-inline">
+          <button class="btn btn-outline-danger btn-sm">
+            Vaciar carrito
+          </button>
+        </form>
+      {% endif %}
+    </div>
+
+    {% if items and items|length > 0 %}
+    <div class="row g-4">
+      <!-- Lista de productos -->
+      <div class="col-lg-8">
+        <div class="table-responsive shadow-sm rounded-3 bg-white">
+          <table class="table table-borderless align-middle mb-0">
+            <thead class="bg-light border-bottom">
+              <tr class="text-muted">
+                <th>Producto</th>
+                <th>SKU</th>
+                <th class="text-center">Cantidad</th>
+                <th class="text-end">Precio</th>
+                <th class="text-end">Subtotal</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for it in items %}
+              <tr class="cart-item-row border-bottom">
+                <td>
+                  <div class="d-flex align-items-center">
+                    <div class="cart-item-icon me-2">💍</div>
+                    <div>
+                      <div class="fw-semibold">{{ it.Name }}</div>
+                      <div class="small text-muted">{{ it.Category or '' }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="text-muted">{{ it.SKU }}</td>
+
+                <td class="text-center">
+                  <form method="post" action="{{ url_for('cart.update') }}" class="d-flex justify-content-center align-items-center gap-2">
+                    <input type="hidden" name="cartItemId" value="{{ it.CartItemId }}">
+                    <input type="number" name="qty" min="1" value="{{ it.Quantity }}"
+                           class="form-control form-control-sm text-center" style="width: 70px;">
+                    <button class="btn btn-sm btn-outline-secondary" title="Actualizar cantidad">
+                      🔁
+                    </button>
+                  </form>
+                </td>
+
+                <td class="text-end">Q {{ "%.2f"|format(it.UnitPrice) }}</td>
+                <td class="text-end fw-semibold">Q {{ "%.2f"|format(it.LineTotal) }}</td>
+                <td class="text-end">
+                  <form method="post" action="{{ url_for('cart.remove') }}" class="d-inline">
+                    <input type="hidden" name="cartItemId" value="{{ it.CartItemId }}">
+                    <button class="btn btn-sm btn-outline-danger" title="Quitar">
+                      ✖
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Resumen -->
+      <div class="col-lg-4">
+        <div class="card shadow-sm border-0 rounded-4">
+          <div class="card-body">
+            <h5 class="fw-bold mb-3 text-center text-primary">Resumen del pedido</h5>
+
+            <div class="d-flex justify-content-between mb-2">
+              <span>Subtotal</span>
+              <span class="fw-semibold">Q {{ "%.2f"|format(subtotal) }}</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <span>IVA (incluido)</span>
+              <span class="fw-semibold">Q {{ "%.2f"|format(iva) }}</span>
+            </div>
+            <hr>
+            <div class="d-flex justify-content-between mb-3 fs-5">
+              <span class="fw-bold">Total</span>
+              <span class="fw-bold text-success">Q {{ "%.2f"|format(total) }}</span>
+            </div>
+
+            <form method="post" action="{{ url_for('orders.checkout') }}">
+              <input type="hidden" name="cartId" value="{{ cart_id }}">
+              <button class="btn btn-success w-100 btn-lg shadow-sm">
+                Proceder al pago 💳
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% else %}
+      <div class="text-center py-5">
+        <div class="display-6 mb-3">🛍️</div>
+        <p class="lead mb-3">Tu carrito está vacío.</p>
+        <a href="{{ url_for('catalog.home') }}" class="btn btn-primary">
+          Ver catálogo
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+{% endblock %}

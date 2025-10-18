@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Editar' if item else 'Nuevo' }} producto{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <div class="card shadow-sm border-0">
+    <div class="card-body">
+
+      <h2 class="mb-4 text-primary fw-bold">
+        <i class="bi bi-box-seam me-2"></i>
+        {{ 'Editar' if item else 'Nuevo' }} producto
+      </h2>
+
+      <form action="{{ url_for('admin_products.edit_product_post', pid=item.ProductId) if item
+                      else url_for('admin_products.new_product_post') }}"
+            method="post" class="row g-3">
+
+        <!-- Datos principales -->
+        <div class="col-md-3">
+          <label class="form-label fw-semibold">Código *</label>
+          <input name="sku" class="form-control shadow-sm" placeholder="Ej: PRD-001" 
+                 value="{{ item.SKU if item else '' }}" required>
+        </div>
+
+        <div class="col-md-5">
+          <label class="form-label fw-semibold">Nombre *</label>
+          <input name="name" class="form-control shadow-sm" placeholder="Nombre del producto" 
+                 value="{{ item.Name if item else '' }}" required>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Precio (Q) *</label>
+          <input name="price" class="form-control shadow-sm" type="number" step="0.01"
+                 value="{{ item.Price if item else '' }}" required>
+        </div>
+
+        <div class="col-md-12">
+          <label class="form-label fw-semibold">Descripción</label>
+          <textarea name="description" class="form-control shadow-sm" rows="3"
+                    placeholder="Descripción breve del producto...">{{ item.Description if item else '' }}</textarea>
+        </div>
+
+        <!-- Categoría -->
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Categoría</label>
+          <select name="category_id" class="form-select shadow-sm">
+            <option value="">-- Sin categoría --</option>
+            {% for c in categories %}
+              <option value="{{ c.CategoryId }}"
+                {% if item and item.CategoryId == c.CategoryId %}selected{% endif %}>
+                {{ c.Name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Material -->
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Material</label>
+          <input name="material_name" class="form-control shadow-sm"
+                 placeholder="Ej: Oro 18k, Plata 925"
+                 value="">
+          <div class="form-text text-muted">
+            Si no escribes nada, se usará “General”.
+          </div>
+        </div>
+
+        <!-- Medidas -->
+        <div class="col-md-2">
+          <label class="form-label fw-semibold">Peso (g)</label>
+          <input name="weight_grams" class="form-control shadow-sm" type="number" step="0.01" 
+                 value="{{ item.WeightGrams if item else '' }}">
+        </div>
+
+        <div class="col-md-2">
+          <label class="form-label fw-semibold">Ancho (mm)</label>
+          <input name="width_mm" class="form-control shadow-sm" type="number" step="0.01" 
+                 value="{{ item.WidthMm if item else '' }}">
+        </div>
+
+        <div class="col-md-2">
+          <label class="form-label fw-semibold">Alto (mm)</label>
+          <input name="height_mm" class="form-control shadow-sm" type="number" step="0.01" 
+                 value="{{ item.HeightMm if item else '' }}">
+        </div>
+
+        <!-- Estado -->
+        <div class="col-md-3 mt-4">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="tax_included" name="tax_included"
+                   {% if item and item.TaxIncluded %}checked{% endif %}>
+            <label class="form-check-label fw-semibold" for="tax_included">
+              Impuesto incluido
+            </label>
+          </div>
+        </div>
+
+        <div class="col-md-3 mt-4">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="active" name="active"
+                   {% if not item or item.Active %}checked{% endif %}>
+            <label class="form-check-label fw-semibold" for="active">
+              Producto activo
+            </label>
+          </div>
+        </div>
+
+        <!-- Botones -->
+        <div class="col-12 mt-4 d-flex gap-2">
+          <a class="btn btn-outline-secondary px-4" href="{{ url_for('admin_products.list_products') }}">
+            <i class="bi bi-arrow-left"></i> Cancelar
+          </a>
+          <button class="btn btn-primary px-4" type="submit">
+            <i class="bi bi-save me-1"></i> Guardar
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

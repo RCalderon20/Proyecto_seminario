@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="login-section d-flex align-items-center justify-content-center py-5">
+  <div class="login-card shadow-lg rounded-4 p-4 p-md-5 bg-white col-12 col-sm-10 col-md-7 col-lg-5">
+
+    <div class="text-center mb-4">
+      <div class="login-icon mb-2">🔐</div>
+      <h2 class="fw-bold text-primary mb-1">Iniciar sesión</h2>
+      <p class="text-muted small mb-0">Accede para continuar con tus compras.</p>
+    </div>
+
+    <form method="post" action="{{ url_for('auth.login_post') }}" novalidate>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Correo electrónico</label>
+        <input type="email" name="email" class="form-control form-control-lg" placeholder="ejemplo@correo.com" required>
+      </div>
+
+      <div class="mb-2 position-relative">
+        <label class="form-label fw-semibold">Contraseña</label>
+        <div class="input-group input-group-lg">
+          <input type="password" name="password" class="form-control" id="loginPassword" placeholder="********" required>
+          <button class="btn btn-outline-secondary" type="button" id="btnTogglePwd" aria-label="Mostrar u ocultar contraseña">
+            <span id="eyeText">Mostrar</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center mt-2 mb-3">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="rememberCheck">
+          <label class="form-check-label" for="rememberCheck">Recordarme</label>
+        </div>
+        <a href="#" class="small text-decoration-none text-muted" title="(Opcional) Implementar recuperación">¿Olvidaste tu contraseña?</a>
+      </div>
+
+      <div class="d-grid gap-2">
+        <button class="btn btn-primary btn-lg">Entrar</button>
+        <a href="{{ url_for('auth.register_form') }}" class="btn btn-outline-primary btn-lg">Crear cuenta</a>
+      </div>
+    </form>
+  </div>
+</section>
+
+{% endblock %}

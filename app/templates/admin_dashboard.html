@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="admin-dash-hero rounded-3 p-4 p-md-5 mb-4">
+  <div class="d-flex flex-column flex-md-row align-items-md-end gap-3">
+    <div class="flex-grow-1">
+      <h1 class="display-6 text-black mb-1">Dashboard Administrativo</h1>
+      <p class="text-black-50 mb-0">Resumen de actividad, ventas y reportes descargables.</p>
+    </div>
+  </div>
+</section>
+
+<!-- KPIs -->
+<div class="row g-3 kpi-row">
+  <div class="col-sm-6 col-lg-3">
+    <div class="card kpi-card shadow-sm h-100">
+      <div class="card-body d-flex align-items-center">
+        <div class="kpi-icon bg-primary-subtle text-primary me-3">👥</div>
+        <div>
+          <div class="text-muted small">Usuarios totales</div>
+          <div id="kpi-total-users" class="fs-3 fw-semibold kpi-skel">–</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="card kpi-card shadow-sm h-100">
+      <div class="card-body d-flex align-items-center">
+        <div class="kpi-icon bg-success-subtle text-success me-3">✅</div>
+        <div>
+          <div class="text-muted small">Usuarios activos</div>
+          <div id="kpi-active-users" class="fs-3 fw-semibold kpi-skel">–</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="card kpi-card shadow-sm h-100">
+      <div class="card-body d-flex align-items-center">
+        <div class="kpi-icon bg-info-subtle text-info me-3">🧾</div>
+        <div>
+          <div class="text-muted small">Pedidos hoy</div>
+          <div id="kpi-orders-today" class="fs-3 fw-semibold kpi-skel">–</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="card kpi-card shadow-sm h-100">
+      <div class="card-body d-flex align-items-center">
+        <div class="kpi-icon bg-warning-subtle text-warning me-3">💳</div>
+        <div>
+          <div class="text-muted small">Ventas hoy</div>
+          <div id="kpi-revenue-today" class="fs-3 fw-semibold kpi-skel">–</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Gráficos -->
+<div class="row g-3 mt-2">
+  <div class="col-lg-7">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <h5 class="card-title mb-0">Ventas por mes (últimos 12)</h5>
+          <span class="small text-muted">Actualizado al cargar</span>
+        </div>
+        <div class="chart-wrap mt-2">
+          <canvas id="chart-sales"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <h5 class="card-title mb-0">Top productos por unidades</h5>
+          <span class="small text-muted">Top 5</span>
+        </div>
+        <div class="chart-wrap mt-2">
+          <canvas id="chart-top"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="my-4">
+
+<h4 class="mb-3">📄 Reportes / Descargas</h4>
+
+<div class="row g-3 align-items-end">
+  <div class="col-sm-6 col-lg-4">
+    <label class="form-label">Dataset</label>
+    <select id="rep-dataset" class="form-select form-select-sm">
+      <option value="users">Usuarios (totales, activos, nuevos)</option>
+      <option value="orders">Pedidos/Ventas (hoy, últimos 30 días)</option>
+      <option value="sales_by_month">Ventas por mes (últimos 12)</option>
+      <option value="top_products">Top productos por unidades</option>
+    </select>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <label class="form-label">Acciones</label><br>
+    <button id="btn-preview" class="btn btn-outline-primary btn-sm">Vista previa</button>
+  </div>
+  <div class="col-sm-12 col-lg-5 text-lg-end">
+    <label class="form-label d-none d-lg-block">&nbsp;</label><br>
+    <div class="btn-group">
+      <a id="dl-pdf"  class="btn btn-danger btn-sm"   href="#">Descargar PDF</a>
+      <a id="dl-xlsx" class="btn btn-success btn-sm" href="#">Descargar Excel</a>
+      <a id="dl-xml"  class="btn btn-secondary btn-sm" href="#">Descargar XML</a>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow-sm mt-3">
+  <div class="card-body">
+    <h6 class="card-title">Vista previa</h6>
+    <div class="table-responsive">
+      <table class="table table-sm table-striped align-middle" id="preview-table" style="display:none">
+        <thead></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div id="preview-empty" class="text-muted small">Selecciona un dataset y pulsa “Vista previa”.</div>
+  </div>
+</div>
+
+<!-- Scripts de Reportería -->
+<script>
+(function(){
+  const $dataset = document.getElementById('rep-dataset');
+  const $btnPreview = document.getElementById('btn-preview');
+  const $tbl = document.getElementById('preview-table');
+  const $thead = $tbl.querySelector('thead');
+  const $tbody = $tbl.querySelector('tbody');
+  const $empty = document.getElementById('preview-empty');
+  const baseExport = "{{ url_for('admin_dashboard.report_export') }}";
+  const basePreview = "{{ url_for('admin_dashboard.report_preview') }}";
+
+  function setDownloadLinks() {
+    const ds = $dataset.value;
+    document.getElementById('dl-pdf').href  = `${baseExport}?dataset=${encodeURIComponent(ds)}&format=pdf`;
+    document.getElementById('dl-xlsx').href = `${baseExport}?dataset=${encodeURIComponent(ds)}&format=xlsx`;
+    document.getElementById('dl-xml').href  = `${baseExport}?dataset=${encodeURIComponent(ds)}&format=xml`;
+  }
+
+  setDownloadLinks();
+  $dataset.addEventListener('change', setDownloadLinks);
+
+  $btnPreview.addEventListener('click', async () => {
+    const ds = $dataset.value;
+    try {
+      const res = await fetch(`${basePreview}?dataset=${encodeURIComponent(ds)}`);
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error || 'Error al obtener vista previa');
+
+      // Construir tabla
+      $thead.innerHTML = '';
+      $tbody.innerHTML = '';
+      if (data.columns.length) {
+        const trh = document.createElement('tr');
+        data.columns.forEach(c => {
+          const th = document.createElement('th');
+          th.textContent = c;
+          trh.appendChild(th);
+        });
+        $thead.appendChild(trh);
+
+        data.rows.forEach(r => {
+          const tr = document.createElement('tr');
+          r.forEach(cell => {
+            const td = document.createElement('td');
+            td.textContent = cell;
+            tr.appendChild(td);
+          });
+          $tbody.appendChild(tr);
+        });
+
+        $tbl.style.display = '';
+        $empty.style.display = 'none';
+      } else {
+        $tbl.style.display = 'none';
+        $empty.textContent = 'Sin datos para este reporte.';
+        $empty.style.display = '';
+      }
+    } catch (err) {
+      console.error(err);
+      $tbl.style.display = 'none';
+      $empty.textContent = 'No se pudo cargar la vista previa.';
+      $empty.style.display = '';
+    }
+  });
+})();
+</script>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+(async function loadDashboard() {
+  try {
+    const res = await fetch("{{ url_for('admin_dashboard.dashboard_data') }}");
+    const data = await res.json();
+
+    // KPIs
+    const $tot = document.getElementById('kpi-total-users');
+    const $act = document.getElementById('kpi-active-users');
+    const $ord = document.getElementById('kpi-orders-today');
+    const $rev = document.getElementById('kpi-revenue-today');
+
+    $tot.textContent = data.userKpis.totalUsers;
+    $act.textContent = data.userKpis.activeUsers;
+    $ord.textContent = data.orderKpis.ordersToday;
+    $rev.textContent = 'Q ' + (data.orderKpis.revenueToday || 0).toFixed(2);
+
+    [$tot,$act,$ord,$rev].forEach(el => el.classList.remove('kpi-skel'));
+
+    // Ventas por mes
+    new Chart(document.getElementById('chart-sales'), {
+      type: 'line',
+      data: {
+        labels: data.sales.labels,
+        datasets: [{
+          label: 'Ventas (Q)',
+          data: data.sales.values,
+          tension: 0.25,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: true }},
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+
+    // Top productos (por cantidad)
+    new Chart(document.getElementById('chart-top'), {
+      type: 'bar',
+      data: {
+        labels: data.topProducts.labels,
+        datasets: [{
+          label: 'Unidades vendidas',
+          data: data.topProducts.qty
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        scales: { x: { beginAtZero: true } }
+      }
+    });
+
+  } catch (err) {
+    console.error(err);
+    alert('No se pudo cargar el dashboard.');
+  }
+})();
+</script>
+{% endblock %}

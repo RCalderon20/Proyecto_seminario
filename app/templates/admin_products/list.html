@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Admin Products{% endblock %}
+{% block content %}
+<h2 class="mb-3">Administración de Productos</h2>
+
+<a class="btn btn-primary mb-3" href="{{ url_for('admin_products.new_product_form') }}">➕ Nuevo producto</a>
+
+<table class="table table-striped align-middle">
+  <thead>
+    <tr>
+      <th>ID</th><th>Código</th><th>Nombre</th>
+      <th class="text-end">Precio (Q)</th>
+      <th>Impuesto Incluido</th><th>Activo</th>
+      <th>CatId</th><th>MatId</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for r in rows %}
+    <tr>
+      <td>{{ r.ProductId }}</td>
+      <td>{{ r.SKU }}</td>
+      <td>{{ r.Name }}</td>
+      <td class="text-end">{{ '%.2f'|format(r.Price or 0) }}</td>
+      <td>{% if r.TaxIncluded %}<span class="badge bg-info">Sí</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td>
+      <td>{% if r.Active %}<span class="badge bg-success">Sí</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td>
+      <td>{{ r.CategoryId or '-' }}</td>
+      <td>{{ r.MaterialId or '-' }}</td>
+      <td class="text-end">
+        <a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin_products.edit_product_form', pid=r.ProductId) }}">Editar</a>
+        <form action="{{ url_for('admin_products.delete_product', pid=r.ProductId) }}" method="post" class="d-inline"
+              onsubmit="return confirm('¿Eliminar producto?');">
+          <button class="btn btn-sm btn-outline-danger" type="submit">Eliminar</button>
+        </form>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

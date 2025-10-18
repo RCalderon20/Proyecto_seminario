@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>{% block title %}Joyería Del Centro{% endblock %}</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Opcional: Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- Tus estilos SIEMPRE después de Bootstrap -->
+  <link href="{{ url_for('static', filename='static/css/styles.css') }}" rel="stylesheet">
+</head>
+<body>
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-expand-lg bg-dark navbar-dark">
+    <div class="container">
+      <a class="navbar-brand" href="{{ url_for('catalog.home') }}">Joyería Del Centro</a>
+
+      <div class="ms-auto d-flex align-items-center gap-2">
+
+        <!-- Saludo -->
+        {% if session.get('user_name') %}
+          <span class="text-white small me-1">
+            👋 Hola, <strong>{{ session.get('user_name') }}</strong>
+          </span>
+        {% endif %}
+
+        <!-- Acciones comunes -->
+        <a class="btn btn-outline-light btn-sm" href="{{ url_for('cart.view_cart') }}">Carrito</a>
+        <a class="btn btn-outline-light btn-sm" href="{{ url_for('orders.history') }}">Historial</a>
+        <a class="btn btn-outline-light btn-sm" href="{{ url_for('notifications.view_all') }}">Notificaciones</a>
+
+        <!-- Opciones para administradores -->
+        {% if session.get('roles') and 'Administrador' in session.get('roles') %}
+          <span class="vr mx-2 d-none d-lg-inline"></span>
+          <a class="btn btn-info btn-sm me-2" href="{{ url_for('admin_dashboard.dashboard_page') }}">
+            Dashboard y Reportería
+          </a>
+          <a class="btn btn-warning btn-sm me-2" href="{{ url_for('admin_products.list_products') }}">
+            Administración de Productos
+          </a>
+          <a class="btn btn-primary btn-sm" href="{{ url_for('admin_users.list_users') }}">
+            Gestión de Usuarios
+          </a>
+        {% endif %}
+
+        <!-- Autenticación -->
+        {% if session.get('user_id') %}
+          <form method="post" action="{{ url_for('auth.logout') }}" class="d-inline ms-2">
+            <button class="btn btn-light btn-sm text-dark">Salir</button>
+          </form>
+        {% else %}
+          <a class="btn btn-light btn-sm text-dark" href="{{ url_for('auth.login_form') }}">Iniciar sesión</a>
+          <a class="btn btn-success btn-sm" href="{{ url_for('auth.register_form') }}">Registrarse</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <!-- CONTENEDOR PRINCIPAL -->
+  <main class="container py-4">
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for cat, msg in messages %}
+          <div class="alert alert-{{ cat }} alert-dismissible fade show mb-3" role="alert">
+            {{ msg }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Tu JS -->
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

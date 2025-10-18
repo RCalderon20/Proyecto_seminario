@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="orders-section py-4 py-md-5">
+  <div class="container">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1 class="fw-bold text-primary mb-0">🧾 Historial de pedidos</h1>
+      {% if orders and orders|length %}
+        <span class="text-muted small">
+          Tienes <strong>{{ orders|length }}</strong> pedido{{ orders|length > 1 and 's' or '' }}
+        </span>
+      {% endif %}
+    </div>
+
+    {% if orders and orders|length %}
+      <div class="table-responsive shadow-sm rounded-3 bg-white">
+        <table class="table table-borderless align-middle mb-0">
+          <thead class="bg-light">
+            <tr class="text-muted">
+              <th>N.º de orden</th>
+              <th>Fecha</th>
+              <th>Estado</th>
+              <th class="text-end">Subtotal</th>
+              <th class="text-end">Impuesto</th>
+              <th class="text-end">Total</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for o in orders %}
+            <tr class="order-row border-bottom">
+              <td class="fw-semibold">
+                {{ o.OrderNumber or ('ORD-' ~ o.OrderId) }}
+              </td>
+              <td class="text-muted">
+                {{ o.CreatedAt }}
+              </td>
+              <td>
+                {# Badge de estado (mapea nombres a colores) #}
+                {% set st = (o.StatusName or o.Status or '')|lower %}
+                {% if 'complet' in st %}
+                  <span class="badge bg-success-subtle text-success border border-success-subtle">Completado</span>
+                {% elif 'enviado' in st or 'proceso' in st %}
+                  <span class="badge bg-info-subtle text-info border border-info-subtle">{{ o.StatusName }}</span>
+                {% elif 'cancel' in st %}
+                  <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Cancelado</span>
+                {% else %}
+                  <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">
+                    {{ o.StatusName or 'Creado' }}
+                  </span>
+                {% endif %}
+              </td>
+
+              <td class="text-end">Q {{ "%.2f"|format(o.Subtotal or 0) }}</td>
+              <td class="text-end">Q {{ "%.2f"|format(o.TaxAmount or 0) }}</td>
+              <td class="text-end fw-bold text-success">Q {{ "%.2f"|format((o.TotalAmount or o.Total or 0)) }}</td>
+              <td class="text-end">
+                {# Si más adelante quieres detalle, puedes activar un enlace aquí #}
+                {# <a href="{{ url_for('orders.order_detail', order_id=o.OrderId) }}" class="btn btn-sm btn-outline-primary">Ver</a> #}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="card shadow-sm border-0">
+        <div class="card-body text-center py-5">
+          <div class="display-6 mb-2">🗂️</div>
+          <p class="lead mb-3">Aún no tienes pedidos realizados.</p>
+          <a href="{{ url_for('catalog.home') }}" class="btn btn-primary">Explorar catálogo</a>
+        </div>
+      </div>
+    {% endif %}
+
+  </div>
+</section>
+
+{% endblock %}

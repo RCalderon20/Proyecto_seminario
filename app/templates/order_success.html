@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="order-success-section d-flex align-items-center justify-content-center py-5">
+  <div class="success-card text-center bg-white shadow-lg rounded-4 p-5">
+
+    <!-- Icono animado de éxito -->
+    <div class="success-icon mb-3">
+      <div class="checkmark-circle">
+        <div class="background"></div>
+        <div class="checkmark draw"></div>
+      </div>
+    </div>
+
+    <h2 class="fw-bold text-success mb-3">¡Pedido creado con éxito!</h2>
+    <p class="lead text-muted">
+      Gracias por tu compra. Tu número de pedido es
+      <span class="fw-bold text-dark">#{{ order_id }}</span>.
+    </p>
+
+    <div class="mt-4 d-flex justify-content-center gap-3 flex-wrap">
+      <a href="{{ url_for('orders.history') }}" class="btn btn-outline-success btn-lg">
+        Ver historial de pedidos
+      </a>
+      <a href="{{ url_for('catalog.home') }}" class="btn btn-primary btn-lg">
+        Seguir comprando
+      </a>
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+  <div class="card shadow-sm border-0">
+    <div class="card-body">
+
+      <h1 class="mb-4 text-primary fw-bold">
+        <i class="bi bi-person-gear me-2"></i>
+        {{ 'Nuevo usuario' if mode=='new' else 'Editar usuario' }}
+      </h1>
+
+      <form method="post" class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Correo electrónico</label>
+          <input class="form-control shadow-sm" type="email" name="email" required
+                placeholder="ejemplo@correo.com"
+                value="{{ (user.Email if user else '') }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Nombre</label>
+          <input class="form-control shadow-sm" type="text" name="first_name" required
+                placeholder="Nombre"
+                value="{{ (user.FirstName if user else '') }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Apellido</label>
+          <input class="form-control shadow-sm" type="text" name="last_name" required
+                placeholder="Apellido"
+                value="{{ (user.LastName if user else '') }}">
+        </div>
+
+        <div class="col-12 mt-3">
+          <div class="form-check form-switch ms-2">
+            <input class="form-check-input" type="checkbox" name="is_active" id="is_active"
+                  {% if (user and user.IsActive) or mode=='new' %}checked{% endif %}>
+            <label class="form-check-label fw-semibold" for="is_active">Usuario activo</label>
+          </div>
+        </div>
+
+        <!-- Roles -->
+        <div class="col-12 mt-3">
+          <label class="form-label fw-semibold">Roles asignados</label><br>
+          <div class="d-flex flex-wrap gap-3">
+            {% for r in roles %}
+              <div class="form-check form-check-inline border rounded p-2 shadow-sm">
+                <input class="form-check-input" type="checkbox" name="roles" id="r{{ r.RoleId }}"
+                      value="{{ r.RoleId }}"
+                      {% if user_role_ids and r.RoleId in user_role_ids %}checked{% endif %}>
+                <label class="form-check-label" for="r{{ r.RoleId }}">{{ r.Name }}</label>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        {% if mode == 'new' %}
+          <div class="col-md-4 mt-3">
+            <label class="form-label fw-semibold">Contraseña</label>
+            <input class="form-control shadow-sm" type="password" name="password" required placeholder="********">
+          </div>
+          <div class="col-md-4 mt-3">
+            <label class="form-label fw-semibold">Confirmar contraseña</label>
+            <input class="form-control shadow-sm" type="password" name="confirm" required placeholder="********">
+          </div>
+        {% endif %}
+
+        <div class="col-12 mt-4 d-flex gap-2">
+          <button class="btn btn-primary px-4">
+            <i class="bi bi-save me-1"></i> {{ 'Crear' if mode=='new' else 'Guardar cambios' }}
+          </button>
+          <a class="btn btn-outline-secondary px-4" href="{{ url_for('admin_users.list_users') }}">
+            <i class="bi bi-arrow-left"></i> Volver
+          </a>
+        </div>
+      </form>
+
+      {% if mode == 'edit' %}
+        <hr class="my-4">
+        <h5 class="fw-bold text-danger">
+          <i class="bi bi-key-fill me-2"></i> Resetear contraseña
+        </h5>
+        <form method="post" action="{{ url_for('admin_users.reset_password', user_id=user.UserId) }}" class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Nueva contraseña</label>
+            <input class="form-control shadow-sm" type="password" name="new_password" required placeholder="********">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Confirmar</label>
+            <input class="form-control shadow-sm" type="password" name="confirm" required placeholder="********">
+          </div>
+          <div class="col-md-4 d-flex align-items-end">
+            <button class="btn btn-outline-danger px-4">
+              <i class="bi bi-arrow-repeat me-1"></i> Actualizar contraseña
+            </button>
+          </div>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- HERO -->
+<section class="catalog-hero rounded-3 p-4 p-md-5 mb-4">
+  <div class="d-flex flex-column flex-md-row align-items-md-end gap-3">
+    <div class="flex-grow-1">
+      <h1 class="display-6 text-black mb-2">Catálogo</h1>
+      <p class="text-black-50 mb-0">
+        Encuentra la pieza perfecta. Filtra por <em>categoría</em>, <em>nombre</em> o <em>código</em>.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- FILTROS -->
+<form method="get" id="filterBar" class="row g-2 align-items-center mb-3">
+  <div class="col-sm-6 col-md-4">
+    <label class="form-label mb-0 small text-muted">Categoría</label>
+    <select name="cat" class="form-select" onchange="this.form.submit()">
+      <option value="">Todas las categorías</option>
+      {% for c in categories %}
+        <option value="{{ c.CategoryId }}"
+          {% if selected_cat and selected_cat == c.CategoryId %}selected{% endif %}>
+          {{ c.Name }}
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-sm-6 col-md-5 ms-auto">
+    <label class="form-label mb-0 small text-muted">Búsqueda</label>
+    <div class="d-flex">
+      <input type="text" name="q" value="{{ q or '' }}" class="form-control" placeholder="Nombre o código">
+      <button class="btn btn-outline-primary ms-2">Aplicar</button>
+    </div>
+  </div>
+</form>
+
+{% if products %}
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <div class="text-muted small">
+      Resultados: <strong>{{ pagination.total }}</strong>
+      • Página <strong>{{ pagination.page }}</strong> de <strong>{{ pagination.total_pages }}</strong>
+      {% if q %} • “<em>{{ q }}</em>”{% endif %}
+      {% if selected_cat %}
+        •
+        {% for c in categories if c.CategoryId == selected_cat %}
+          Categoría: <em>{{ c.Name }}</em>
+        {% endfor %}
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- GRID TARJETAS -->
+  <div class="row g-3 g-md-4">
+    {% for p in products %}
+    <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+      <article class="card pro-card h-100 border-0 shadow-sm">
+
+        <!-- Borde superior en gradiente -->
+        <div class="pro-accent"></div>
+
+        <!-- Cabecera con glifo -->
+        <div class="card-body d-flex gap-3 align-items-start">
+          <div class="pro-glyph" aria-hidden="true">⟡</div>
+          <div class="flex-grow-1">
+            <h2 class="h6 mb-1 pro-title" title="{{ p.Name }}">{{ p.Name }}</h2>
+            <div class="d-flex flex-wrap gap-2 small text-muted">
+              <span class="badge text-bg-light border">SKU: {{ p.SKU }}</span>
+              {% if p.Category %}
+                <span class="badge bg-secondary-subtle text-secondary-emphasis border">{{ p.Category }}</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Precio + Acción -->
+        <div class="card-footer bg-white border-0 pt-0 pb-3 px-3 mt-n2">
+          <div class="d-flex align-items-center justify-content-between">
+            <div class="pro-price">Q {{ "%.2f"|format(p.Price) }}</div>
+            <form method="post" action="{{ url_for('cart.add') }}">
+              <input type="hidden" name="productId" value="{{ p.ProductId }}">
+              <input type="hidden" name="qty" value="1">
+              <button class="btn btn-primary btn-sm">Agregar</button>
+            </form>
+          </div>
+        </div>
+
+      </article>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- PAGINACIÓN -->
+  {% if pagination.total_pages > 1 %}
+  <nav class="mt-4">
+    <ul class="pagination justify-content-center">
+      <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+        <a class="page-link"
+           href="{{ url_for('catalog.home', q=q, cat=selected_cat, page=pagination.page-1) if pagination.has_prev else '#' }}">
+           « Anterior
+        </a>
+      </li>
+
+      {% set start = [1, pagination.page-2]|max %}
+      {% set end   = [pagination.total_pages, pagination.page+2]|min %}
+      {% if start > 1 %}
+        <li class="page-item">
+          <a class="page-link" href="{{ url_for('catalog.home', q=q, cat=selected_cat, page=1) }}">1</a>
+        </li>
+        {% if start > 2 %}<li class="page-item disabled"><span class="page-link">…</span></li>{% endif %}
+      {% endif %}
+
+      {% for pnum in range(start, end + 1) %}
+        <li class="page-item {% if pnum == pagination.page %}active{% endif %}">
+          <a class="page-link" href="{{ url_for('catalog.home', q=q, cat=selected_cat, page=pnum) }}">{{ pnum }}</a>
+        </li>
+      {% endfor %}
+
+      {% if end < pagination.total_pages %}
+        {% if end < pagination.total_pages - 1 %}
+          <li class="page-item disabled"><span class="page-link">…</span></li>
+        {% endif %}
+        <li class="page-item">
+          <a class="page-link" href="{{ url_for('catalog.home', q=q, cat=selected_cat, page=pagination.total_pages) }}">
+            {{ pagination.total_pages }}
+          </a>
+        </li>
+      {% endif %}
+
+      <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+        <a class="page-link"
+           href="{{ url_for('catalog.home', q=q, cat=selected_cat, page=pagination.page+1) if pagination.has_next else '#' }}">
+           Siguiente »
+        </a>
+      </li>
+    </ul>
+  </nav>
+  {% endif %}
+
+{% else %}
+  <div class="text-center py-5">
+    <div class="display-6 mb-2">😕</div>
+    <p class="lead">
+      No encontramos productos activos
+      {% if q %} para “<em>{{ q }}</em>”{% endif %}
+      {% if selected_cat and not q %} en la categoría seleccionada{% endif %}.
+    </p>
+    <a href="{{ url_for('catalog.home') }}" class="btn btn-outline-primary">Ver todo</a>
+  </div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1 class="mb-4">Mis pedidos</h1>
+
+  {% if orders and orders|length > 0 %}
+    <div class="table-responsive">
+      <table class="table table-striped align-middle">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Fecha</th>
+            <th>Estado</th>
+            <th class="text-end">Subtotal</th>
+            <th class="text-end">Impuestos</th>
+            <th class="text-end">Total</th>
+            <th class="text-end"></th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for o in orders %}
+          <tr>
+            <td><a href="{{ url_for('orders.order_detail', order_id=o.OrderId) }}">{{ o.OrderNumber or ('ORD-' ~ o.OrderId) }}</a></td>
+            <td>{{ o.CreatedAt }}</td>
+            <td>{{ o.Status or '-' }}</td>
+            <td class="text-end">Q {{ "%.2f"|format(o.Subtotal) }}</td>
+            <td class="text-end">Q {{ "%.2f"|format(o.TaxAmount) }}</td>
+            <td class="text-end fw-bold">Q {{ "%.2f"|format(o.Total) }}</td>
+            <td class="text-end">
+              <a class="btn btn-sm btn-outline-primary"
+                 href="{{ url_for('orders.order_detail', order_id=o.OrderId) }}">
+                 Ver detalle
+              </a>
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p>No tienes pedidos aún.</p>
+    <a class="btn btn-primary" href="{{ url_for('catalog.home') }}">Ir al catálogo</a>
+  {% endif %}
+{% endblock %}
